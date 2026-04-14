@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pro Trading Journal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-white">
+
+<div class="max-w-6xl mx-auto p-6">
+  <h1 class="text-3xl font-bold mb-6 text-center">📊 Trading Journal Pro</h1>
+
+  <!-- FORM -->
+  <div class="bg-gray-800 p-4 rounded-2xl shadow-lg mb-6">
+    <h2 class="text-xl mb-4">Tambah Trade</h2>
+    <div class="grid md:grid-cols-3 gap-4">
+      <input id="pair" placeholder="Pair (BTC/USDT)" class="p-2 rounded bg-gray-700">
+      <input id="entry" type="number" placeholder="Entry" class="p-2 rounded bg-gray-700">
+      <input id="exit" type="number" placeholder="Exit" class="p-2 rounded bg-gray-700">
+      <input id="lot" type="number" placeholder="Lot/Size" class="p-2 rounded bg-gray-700">
+      <select id="type" class="p-2 rounded bg-gray-700">
+        <option value="Buy">Buy</option>
+        <option value="Sell">Sell</option>
+      </select>
+      <input id="date" type="date" class="p-2 rounded bg-gray-700">
+    </div>
+
+    <button onclick="addTrade()" class="mt-4 bg-blue-600 px-4 py-2 rounded hover:bg-blue-700">Tambah</button>
+  </div>
+
+  <!-- STATS -->
+  <div class="grid md:grid-cols-3 gap-4 mb-6">
+    <div class="bg-green-600 p-4 rounded-xl">
+      <h3>Total Profit</h3>
+      <p id="totalProfit">0</p>
+    </div>
+    <div class="bg-blue-600 p-4 rounded-xl">
+      <h3>Total Trade</h3>
+      <p id="totalTrade">0</p>
+    </div>
+    <div class="bg-red-600 p-4 rounded-xl">
+      <h3>Win Rate</h3>
+      <p id="winRate">0%</p>
+    </div>
+  </div>
+
+  <!-- TABLE -->
+  <div class="bg-gray-800 p-4 rounded-2xl">
+    <table class="w-full text-left">
+      <thead>
+        <tr>
+          <th>Pair</th>
+          <th>Type</th>
+          <th>Entry</th>
+          <th>Exit</th>
+          <th>Profit</th>
+          <th>Date</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+let trades = JSON.parse(localStorage.getItem('trades')) || [];
+
+function saveData() {
+  localStorage.setItem('trades', JSON.stringify(trades));
+}
+
+function calculateProfit(t) {
+  if (t.type === 'Buy') {
+    return (t.exit - t.entry) * t.lot;
+  } else {
+    return (t.entry - t.exit) * t.lot;
+  }
+}
+
+function addTrade() {
+  const trade = {
+    pair: document.getElementById('pair').value,
+    entry: parseFloat(document.getElementById('entry').value),
+    exit: parseFloat(document.getElementById('exit').value),
+    lot: parseFloat(document.getElementById('lot').value),
+    type: document.getElementById('type').value,
+    date: document.getElementById('date').value
+  };
+
+  if (!trade.pair || !trade.entry || !trade.exit || !trade.lot) {
+    alert('Isi semua field!');
+    return;
+  }
+
+  trades.push(trade);
+  saveData();
+  render();
+}
+
+function deleteTrade(index) {
+  trades.splice(index, 1);
+  saveData();
+  render();
+}
+
+function render() {
+  const table = document.getElementById('tableBody');
+  table.innerHTML = '';
+
+  let totalProfit = 0;
+  let win = 0;
+
+  trades.forEach((t, i) => {
+    const profit = calculateProfit(t);
+    totalProfit += profit;
+    if (profit > 0) win++;
+
+    table.innerHTML += `
+      <tr class="border-b border-gray-700">
+        <td>${t.pair}</td>
+        <td>${t.type}</td>
+        <td>${t.entry}</td>
+        <td>${t.exit}</td>
+        <td class="${profit >= 0 ? 'text-green-400' : 'text-red-400'}">${profit.toFixed(2)}</td>
+        <td>${t.date}</td>
+        <td><button onclick="deleteTrade(${i})" class="text-red-500">Hapus</button></td>
+      </tr>
+    `;
+  });
+
+  document.getElementById('totalProfit').innerText = totalProfit.toFixed(2);
+  document.getElementById('totalTrade').innerText = trades.length;
+  document.getElementById('winRate').innerText = trades.length ? ((win / trades.length) * 100).toFixed(1) + '%' : '0%';
+}
+
+render();
+</script>
+
+</body>
+</html>
