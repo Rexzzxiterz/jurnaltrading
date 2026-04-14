@@ -7,6 +7,12 @@
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- 🔥 CANDLE PLUGIN -->
+<script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
+<script src="https://cdn.jsdelivr.net/npm/luxon"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
 
 <style>
@@ -32,7 +38,6 @@ animation:pop 1s forwards;
 
 <div class="max-w-6xl mx-auto p-6">
 
-<!-- TITLE -->
 <h1 class="text-4xl md:text-5xl font-extrabold text-center mb-6
 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-600
 bg-clip-text text-transparent
@@ -119,14 +124,13 @@ let e=+t.entry,x=+t.exit,l=+t.lot;
 return t.type==='Buy'?(x-e)*l:(e-x)*l;
 }
 
-// 💸 PROFIT EFFECT
 function moneyFromProfit(){
 let r=profit.getBoundingClientRect();
-let icons=["💰","💵","🪙"];
-for(let i=0;i<15;i++){
+["💰","💵","🪙"].forEach(icon=>{
+for(let i=0;i<5;i++){
 let m=document.createElement("div");
 m.className="money-pop";
-m.innerText=icons[Math.random()*icons.length|0];
+m.innerText=icon;
 m.style.left=r.left+"px";
 m.style.top=r.top+"px";
 m.style.setProperty("--x",(Math.random()*200-100)+"px");
@@ -134,17 +138,17 @@ m.style.setProperty("--y",(Math.random()*-200)+"px");
 document.body.appendChild(m);
 setTimeout(()=>m.remove(),1000);
 }
+});
 cashSound.play();
 }
 
-// 🔻 LOSS EFFECT
 function lossEffect(){
 let r=loss.getBoundingClientRect();
-let icons=["🔻","💀","📉"];
-for(let i=0;i<15;i++){
+["🔻","💀","📉"].forEach(icon=>{
+for(let i=0;i<5;i++){
 let m=document.createElement("div");
 m.className="loss-pop";
-m.innerText=icons[Math.random()*icons.length|0];
+m.innerText=icon;
 m.style.left=r.left+"px";
 m.style.top=r.top+"px";
 m.style.setProperty("--x",(Math.random()*200-100)+"px");
@@ -152,22 +156,15 @@ m.style.setProperty("--y",(Math.random()*200)+"px");
 document.body.appendChild(m);
 setTimeout(()=>m.remove(),1000);
 }
+});
 lossSound.play();
 }
 
 function addTrade(){
 sound();
-let t={
-pair:pair.value,
-entry:entry.value,
-exit:exit.value,
-lot:lot.value,
-type:type.value,
-date:date.value
-};
+let t={pair:pair.value,entry:entry.value,exit:exit.value,lot:lot.value,type:type.value,date:date.value};
 
 let pr=profitCalc(t);
-
 if(pr>0) moneyFromProfit();
 else if(pr<0) lossEffect();
 
@@ -183,7 +180,7 @@ render();
 }
 
 function render(){
-let p=0,l=0,w=0,data=[];
+let p=0,l=0,w=0;
 table.innerHTML='';
 
 trades.forEach((t,i)=>{
@@ -191,17 +188,15 @@ let pr=profitCalc(t);
 if(pr>=0){p+=pr;w++;}
 else l+=Math.abs(pr);
 
-data.push(p-l);
-
 table.innerHTML+=`
 <tr class="border-b border-yellow-500/20">
 <td>${t.pair}</td>
 <td>${t.entry}</td>
 <td>${t.exit}</td>
 <td>${t.lot}</td>
-<td class="${t.type==='Buy'?'text-green-400':'text-red-400'}">${t.type}</td>
+<td>${t.type}</td>
 <td>${formatDate(t.date)}</td>
-<td class="${pr>=0?'text-green-400':'text-red-400'} font-semibold">${pr.toFixed(2)}</td>
+<td class="${pr>=0?'text-green-400':'text-red-400'}">${pr.toFixed(2)}</td>
 <td><button onclick="del(${i})">❌</button></td>
 </tr>`;
 });
@@ -211,17 +206,44 @@ loss.innerText=l.toFixed(2);
 count.innerText=trades.length;
 win.innerText=trades.length?((w/trades.length)*100).toFixed(1)+'%':'0%';
 
+// 🔥 CANDLE CHART
+let candleData = trades.map((t,i)=>{
+let e=+t.entry,x=+t.exit;
+return {
+x:i,
+o:e,
+h:Math.max(e,x)+Math.random()*5,
+l:Math.min(e,x)-Math.random()*5,
+c:x
+};
+});
+
 if(chart) chart.destroy();
 chart=new Chart(document.getElementById("chart"),{
-type:'line',
-data:{labels:data.map((_,i)=>i+1),datasets:[{data:data}]},
-options:{plugins:{legend:{display:false}}}
+type:'candlestick',
+data:{
+datasets:[{
+data:candleData,
+color:{
+up:'#00ff88',
+down:'#ff3b3b',
+unchanged:'#999'
+}
+}]
+},
+options:{
+plugins:{legend:{display:false}},
+scales:{
+x:{ticks:{color:'#FFD700'}},
+y:{ticks:{color:'#FFD700'}}
+}
+}
 });
 }
 
 render();
 
-// 💰 MONEY RAIN
+// money rain
 setInterval(()=>{
 let m=document.createElement("div");
 m.className="money";
@@ -232,23 +254,14 @@ document.getElementById("money-rain").appendChild(m);
 setTimeout(()=>m.remove(),6000);
 },300);
 
-// ✨ GOLD PARTICLES (FIX)
+// GOLD particles
 tsParticles.load("tsparticles",{
 particles:{
 number:{value:80},
 color:{value:"#FFD700"},
-links:{
-enable:true,
-color:"#FFD700",
-distance:150,
-opacity:0.5,
-width:1
-},
-move:{enable:true,speed:1},
-size:{value:2},
-opacity:{value:0.7}
-},
-background:{color:"#000"}
+links:{enable:true,color:"#FFD700",distance:150},
+move:{enable:true,speed:1}
+}
 });
 </script>
 
