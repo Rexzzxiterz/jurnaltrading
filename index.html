@@ -3,64 +3,67 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pro Trading Journal</title>
+  <title>Trading Journal Pro</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-white">
+<body class="bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white min-h-screen">
 
 <div class="max-w-6xl mx-auto p-6">
-  <h1 class="text-3xl font-bold mb-6 text-center">📊 Trading Journal Pro</h1>
+  <h1 class="text-4xl font-bold text-center mb-8 tracking-wide">🚀 Trading Journal Pro</h1>
 
   <!-- FORM -->
-  <div class="bg-gray-800 p-4 rounded-2xl shadow-lg mb-6">
-    <h2 class="text-xl mb-4">Tambah Trade</h2>
+  <div class="bg-white/5 backdrop-blur-lg border border-white/10 p-6 rounded-2xl shadow-xl mb-8">
+    <h2 class="text-xl mb-4 font-semibold">Tambah Trade</h2>
     <div class="grid md:grid-cols-3 gap-4">
-      <input id="pair" placeholder="Pair (BTC/USDT)" class="p-2 rounded bg-gray-700">
-      <input id="entry" type="number" placeholder="Entry" class="p-2 rounded bg-gray-700">
-      <input id="exit" type="number" placeholder="Exit" class="p-2 rounded bg-gray-700">
-      <input id="lot" type="number" placeholder="Lot/Size" class="p-2 rounded bg-gray-700">
-      <select id="type" class="p-2 rounded bg-gray-700">
-        <option value="Buy">Buy</option>
-        <option value="Sell">Sell</option>
+      <input id="pair" placeholder="Pair (BTC/USDT)" class="p-3 rounded-lg bg-black/50 border border-gray-700 focus:outline-none focus:border-blue-500">
+      <input id="entry" type="number" placeholder="Entry" class="p-3 rounded-lg bg-black/50 border border-gray-700 focus:outline-none focus:border-blue-500">
+      <input id="exit" type="number" placeholder="Exit" class="p-3 rounded-lg bg-black/50 border border-gray-700 focus:outline-none focus:border-blue-500">
+      <input id="lot" type="number" placeholder="Lot/Size" class="p-3 rounded-lg bg-black/50 border border-gray-700 focus:outline-none focus:border-blue-500">
+      <select id="type" class="p-3 rounded-lg bg-black/50 border border-gray-700">
+        <option value="Buy">🟢 Buy</option>
+        <option value="Sell">🔴 Sell</option>
       </select>
-      <input id="date" type="date" class="p-2 rounded bg-gray-700">
+      <input id="date" type="date" class="p-3 rounded-lg bg-black/50 border border-gray-700">
     </div>
 
-    <button onclick="addTrade()" class="mt-4 bg-blue-600 px-4 py-2 rounded hover:bg-blue-700">Tambah</button>
+    <button onclick="addTrade()" class="mt-6 w-full bg-gradient-to-r from-blue-500 to-indigo-600 py-3 rounded-xl font-semibold hover:scale-105 transition">+ Tambah Trade</button>
   </div>
 
   <!-- STATS -->
-  <div class="grid md:grid-cols-3 gap-4 mb-6">
-    <div class="bg-green-600 p-4 rounded-xl">
-      <h3>Total Profit</h3>
-      <p id="totalProfit">0</p>
+  <div class="grid md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-gradient-to-r from-green-500 to-emerald-600 p-5 rounded-2xl shadow-lg">
+      <h3 class="text-sm opacity-80">Total Profit</h3>
+      <p id="totalProfit" class="text-2xl font-bold mt-2">0</p>
     </div>
-    <div class="bg-blue-600 p-4 rounded-xl">
-      <h3>Total Trade</h3>
-      <p id="totalTrade">0</p>
+    <div class="bg-gradient-to-r from-blue-500 to-cyan-600 p-5 rounded-2xl shadow-lg">
+      <h3 class="text-sm opacity-80">Total Trade</h3>
+      <p id="totalTrade" class="text-2xl font-bold mt-2">0</p>
     </div>
-    <div class="bg-red-600 p-4 rounded-xl">
-      <h3>Win Rate</h3>
-      <p id="winRate">0%</p>
+    <div class="bg-gradient-to-r from-pink-500 to-red-600 p-5 rounded-2xl shadow-lg">
+      <h3 class="text-sm opacity-80">Win Rate</h3>
+      <p id="winRate" class="text-2xl font-bold mt-2">0%</p>
     </div>
   </div>
 
   <!-- TABLE -->
-  <div class="bg-gray-800 p-4 rounded-2xl">
-    <table class="w-full text-left">
-      <thead>
-        <tr>
-          <th>Pair</th>
-          <th>Type</th>
-          <th>Entry</th>
-          <th>Exit</th>
-          <th>Profit</th>
-          <th>Date</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
+  <div class="bg-white/5 backdrop-blur-lg border border-white/10 p-6 rounded-2xl shadow-xl">
+    <h2 class="mb-4 font-semibold">Riwayat Trade</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-gray-400 border-b border-gray-700">
+            <th class="py-2">Pair</th>
+            <th>Type</th>
+            <th>Entry</th>
+            <th>Exit</th>
+            <th>Profit</th>
+            <th>Date</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -72,11 +75,9 @@ function saveData() {
 }
 
 function calculateProfit(t) {
-  if (t.type === 'Buy') {
-    return (t.exit - t.entry) * t.lot;
-  } else {
-    return (t.entry - t.exit) * t.lot;
-  }
+  return t.type === 'Buy'
+    ? (t.exit - t.entry) * t.lot
+    : (t.entry - t.exit) * t.lot;
 }
 
 function addTrade() {
@@ -118,21 +119,23 @@ function render() {
     if (profit > 0) win++;
 
     table.innerHTML += `
-      <tr class="border-b border-gray-700">
-        <td>${t.pair}</td>
+      <tr class="border-b border-gray-800 hover:bg-white/5 transition">
+        <td class="py-2 font-semibold">${t.pair}</td>
         <td>${t.type}</td>
         <td>${t.entry}</td>
         <td>${t.exit}</td>
-        <td class="${profit >= 0 ? 'text-green-400' : 'text-red-400'}">${profit.toFixed(2)}</td>
+        <td class="${profit >= 0 ? 'text-green-400' : 'text-red-400'} font-semibold">${profit.toFixed(2)}</td>
         <td>${t.date}</td>
-        <td><button onclick="deleteTrade(${i})" class="text-red-500">Hapus</button></td>
+        <td><button onclick="deleteTrade(${i})" class="text-red-400 hover:text-red-600">✖</button></td>
       </tr>
     `;
   });
 
   document.getElementById('totalProfit').innerText = totalProfit.toFixed(2);
   document.getElementById('totalTrade').innerText = trades.length;
-  document.getElementById('winRate').innerText = trades.length ? ((win / trades.length) * 100).toFixed(1) + '%' : '0%';
+  document.getElementById('winRate').innerText = trades.length
+    ? ((win / trades.length) * 100).toFixed(1) + '%'
+    : '0%';
 }
 
 render();
