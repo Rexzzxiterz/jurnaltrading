@@ -1,28 +1,27 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SKY JOURNAL TRADE</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKY JOURNAL TRADE</title>
 
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
 
-  <style>
-    .money { position:absolute; top:-50px; animation:fall linear infinite; }
-    @keyframes fall { to { transform: translateY(110vh) rotate(360deg);} }
+<style>
+.money{position:absolute;top:-50px;animation:fall linear infinite}
+@keyframes fall{to{transform:translateY(110vh) rotate(360deg)}}
 
-    .money-pop, .loss-pop {
-      position:absolute; font-size:20px; pointer-events:none;
-      animation:pop 1s forwards;
-    }
-
-    @keyframes pop {
-      0% {opacity:1; transform:scale(0.5);}
-      100% {opacity:0; transform:translate(var(--x),var(--y)) scale(1.3);}
-    }
-  </style>
+.money-pop,.loss-pop{
+position:absolute;font-size:20px;pointer-events:none;
+animation:pop 1s forwards;
+}
+@keyframes pop{
+0%{opacity:1;transform:scale(0.5)}
+100%{opacity:0;transform:translate(var(--x),var(--y)) scale(1.3)}
+}
+</style>
 </head>
 
 <body class="bg-black text-white min-h-screen overflow-x-hidden">
@@ -30,9 +29,12 @@
 <div id="tsparticles" class="fixed w-full h-full -z-10"></div>
 <div id="money-rain" class="fixed w-full h-full pointer-events-none"></div>
 
-<div class="max-w-6xl mx-auto p-4">
+<div class="max-w-6xl mx-auto p-6">
 
-<h1 class="text-3xl text-center font-bold text-yellow-400 mb-4">
+<!-- TITLE -->
+<h1 class="text-4xl font-bold text-center mb-6
+bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-700
+bg-clip-text text-transparent">
 ☁️ SKY JOURNAL TRADE
 </h1>
 
@@ -41,163 +43,172 @@
 <audio id="lossSound" src="https://assets.mixkit.co/active_storage/sfx/2221/2221-preview.mp3"></audio>
 
 <!-- FORM -->
-<div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
-<input id="pair" placeholder="Pair" class="p-2 bg-gray-800 rounded">
-<input id="entry" placeholder="Entry" class="p-2 bg-gray-800 rounded">
-<input id="exit" placeholder="Exit" class="p-2 bg-gray-800 rounded">
-<input id="lot" placeholder="Lot" class="p-2 bg-gray-800 rounded">
-<select id="type" class="p-2 bg-gray-800 rounded">
+<div class="bg-white/5 p-4 rounded mb-6 grid grid-cols-2 md:grid-cols-3 gap-3">
+<input id="pair" placeholder="Pair" class="p-2 bg-black/50 rounded">
+<input id="entry" placeholder="Entry" class="p-2 bg-black/50 rounded">
+<input id="exit" placeholder="Exit" class="p-2 bg-black/50 rounded">
+<input id="lot" placeholder="Lot" class="p-2 bg-black/50 rounded">
+<select id="type" class="p-2 bg-black/50 rounded">
 <option>Buy</option><option>Sell</option>
 </select>
-<input id="date" type="date" class="p-2 bg-gray-800 rounded">
-</div>
-
-<button onclick="addTrade()" class="w-full bg-yellow-500 text-black p-2 rounded mb-4">
+<input id="date" type="date" class="p-2 bg-black/50 rounded">
+<button onclick="addTrade()" class="col-span-2 md:col-span-3 bg-yellow-500 text-black p-2 rounded">
 Tambah Trade
 </button>
-
-<!-- STATS -->
-<div class="grid grid-cols-4 text-center mb-4">
-<div>Profit<br><b id="profit">0</b></div>
-<div>Loss<br><b id="loss">0</b></div>
-<div>Trade<br><b id="count">0</b></div>
-<div>Win<br><b id="win">0%</b></div>
 </div>
 
-<canvas id="chart"></canvas>
+<!-- STATS -->
+<div class="grid grid-cols-2 md:grid-cols-4 text-center mb-6 gap-3">
+<div class="bg-yellow-500 text-black p-3 rounded">Profit<br><b id="profit">0</b></div>
+<div class="bg-red-500 p-3 rounded">Loss<br><b id="loss">0</b></div>
+<div class="bg-blue-500 p-3 rounded">Trade<br><b id="count">0</b></div>
+<div class="bg-purple-500 p-3 rounded">Win<br><b id="win">0%</b></div>
+</div>
 
-<table class="w-full text-sm mt-4 text-center">
+<!-- CHART -->
+<canvas id="chart" class="mb-6"></canvas>
+
+<!-- TABLE -->
+<table class="w-full text-center text-sm">
+<thead>
+<tr>
+<th>Pair</th><th>Entry</th><th>Exit</th><th>Lot</th><th>Type</th><th>Date</th><th>Profit</th><th></th>
+</tr>
+</thead>
 <tbody id="table"></tbody>
 </table>
 
 </div>
 
 <script>
-let trades = JSON.parse(localStorage.getItem('trades'))||[];
+let trades=JSON.parse(localStorage.getItem('trades'))||[];
 let chart;
 
 function sound(){clickSound.play();}
 
+function formatDate(d){
+if(!d)return '-';
+let [y,m,da]=d.split('-');
+return da+'/'+m+'/'+y;
+}
+
 function profitCalc(t){
-  let e=+t.entry,x=+t.exit,l=+t.lot;
-  return t.type==='Buy'?(x-e)*l:(e-x)*l;
+let e=+t.entry,x=+t.exit,l=+t.lot;
+return t.type==='Buy'?(x-e)*l:(e-x)*l;
 }
 
-// 💸 PROFIT EFFECT
 function moneyFromProfit(){
-  let r = profit.getBoundingClientRect();
-  let icons=["💰","💵"];
-  for(let i=0;i<10;i++){
-    let m=document.createElement("div");
-    m.className="money-pop";
-    m.innerText=icons[Math.random()*2|0];
-    m.style.left=r.left+"px";
-    m.style.top=r.top+"px";
-    m.style.setProperty("--x",(Math.random()*200-100)+"px");
-    m.style.setProperty("--y",(Math.random()*-200)+"px");
-    document.body.appendChild(m);
-    setTimeout(()=>m.remove(),1000);
-  }
-  cashSound.play();
+let r=profit.getBoundingClientRect();
+["💰","💵","🪙"].forEach(icon=>{
+for(let i=0;i<5;i++){
+let m=document.createElement("div");
+m.className="money-pop";
+m.innerText=icon;
+m.style.left=r.left+"px";
+m.style.top=r.top+"px";
+m.style.setProperty("--x",(Math.random()*200-100)+"px");
+m.style.setProperty("--y",(Math.random()*-200)+"px");
+document.body.appendChild(m);
+setTimeout(()=>m.remove(),1000);
+}
+});
+cashSound.play();
 }
 
-// 🔻 LOSS EFFECT
 function lossEffect(){
-  let r = loss.getBoundingClientRect();
-  let icons=["🔻","💀"];
-  for(let i=0;i<10;i++){
-    let m=document.createElement("div");
-    m.className="loss-pop";
-    m.innerText=icons[Math.random()*2|0];
-    m.style.left=r.left+"px";
-    m.style.top=r.top+"px";
-    m.style.setProperty("--x",(Math.random()*200-100)+"px");
-    m.style.setProperty("--y",(Math.random()*200)+"px");
-    document.body.appendChild(m);
-    setTimeout(()=>m.remove(),1000);
-  }
-  lossSound.play();
+let r=loss.getBoundingClientRect();
+["🔻","💀","📉"].forEach(icon=>{
+for(let i=0;i<5;i++){
+let m=document.createElement("div");
+m.className="loss-pop";
+m.innerText=icon;
+m.style.left=r.left+"px";
+m.style.top=r.top+"px";
+m.style.setProperty("--x",(Math.random()*200-100)+"px");
+m.style.setProperty("--y",(Math.random()*200)+"px");
+document.body.appendChild(m);
+setTimeout(()=>m.remove(),1000);
+}
+});
+lossSound.play();
 }
 
-// ➕ ADD TRADE (FIXED)
 function addTrade(){
-  sound();
+sound();
+let t={
+pair:pair.value,
+entry:entry.value,
+exit:exit.value,
+lot:lot.value,
+type:type.value,
+date:date.value
+};
 
-  let t={
-    pair:pair.value,
-    entry:entry.value,
-    exit:exit.value,
-    lot:lot.value,
-    type:type.value,
-    date:date.value
-  };
+let pr=profitCalc(t);
 
-  let pr = profitCalc(t);
+if(pr>0) moneyFromProfit();
+else if(pr<0) lossEffect();
 
-  // 🎯 TRIGGER SEKALI SAJA
-  if(pr>0){
-    moneyFromProfit();
-  } else if(pr<0){
-    lossEffect();
-  }
-
-  trades.push(t);
-  localStorage.setItem('trades',JSON.stringify(trades));
-  render();
-}
-
-function render(){
-  let p=0,l=0,w=0,data=[];
-  table.innerHTML='';
-
-  trades.forEach((t,i)=>{
-    let pr=profitCalc(t);
-    if(pr>=0){p+=pr;w++;}
-    else l+=Math.abs(pr);
-
-    data.push(p-l);
-
-    table.innerHTML+=`
-    <tr>
-      <td>${t.pair}</td>
-      <td>${pr.toFixed(2)}</td>
-      <td><button onclick="del(${i})">❌</button></td>
-    </tr>`;
-  });
-
-  profit.innerText=p.toFixed(2);
-  loss.innerText=l.toFixed(2);
-  count.innerText=trades.length;
-  win.innerText=trades.length?((w/trades.length)*100).toFixed(1)+'%':'0%';
-
-  if(chart) chart.destroy();
-  chart=new Chart(chart,{
-    type:'line',
-    data:{labels:data.map((_,i)=>i),datasets:[{data:data}]}
-  });
+trades.push(t);
+localStorage.setItem('trades',JSON.stringify(trades));
+render();
 }
 
 function del(i){
-  trades.splice(i,1);
-  localStorage.setItem('trades',JSON.stringify(trades));
-  render();
+trades.splice(i,1);
+localStorage.setItem('trades',JSON.stringify(trades));
+render();
+}
+
+function render(){
+let p=0,l=0,w=0,data=[];
+table.innerHTML='';
+
+trades.forEach((t,i)=>{
+let pr=profitCalc(t);
+if(pr>=0){p+=pr;w++;}
+else l+=Math.abs(pr);
+
+data.push(p-l);
+
+table.innerHTML+=`
+<tr>
+<td>${t.pair}</td>
+<td>${t.entry}</td>
+<td>${t.exit}</td>
+<td>${t.lot}</td>
+<td>${t.type}</td>
+<td>${formatDate(t.date)}</td>
+<td class="${pr>=0?'text-green-400':'text-red-400'}">${pr.toFixed(2)}</td>
+<td><button onclick="del(${i})">❌</button></td>
+</tr>`;
+});
+
+profit.innerText=p.toFixed(2);
+loss.innerText=l.toFixed(2);
+count.innerText=trades.length;
+win.innerText=trades.length?((w/trades.length)*100).toFixed(1)+'%':'0%';
+
+if(chart) chart.destroy();
+chart=new Chart(document.getElementById("chart"),{
+type:'line',
+data:{labels:data.map((_,i)=>i+1),datasets:[{data:data}]}
+});
 }
 
 render();
 
-// 💸 MONEY RAIN
 setInterval(()=>{
-  let m=document.createElement("div");
-  m.className="money";
-  m.innerText="💵";
-  m.style.left=Math.random()*100+"vw";
-  m.style.animationDuration=(Math.random()*3+3)+"s";
-  document.getElementById("money-rain").appendChild(m);
-  setTimeout(()=>m.remove(),6000);
+let m=document.createElement("div");
+m.className="money";
+m.innerText="💵";
+m.style.left=Math.random()*100+"vw";
+m.style.animationDuration=(Math.random()*3+3)+"s";
+document.getElementById("money-rain").appendChild(m);
+setTimeout(()=>m.remove(),6000);
 },300);
 
-// particles
-tsParticles.load("tsparticles",{particles:{number:{value:50},color:{value:"#FFD700"},move:{enable:true}}});
+tsParticles.load("tsparticles",{particles:{number:{value:60},color:{value:"#FFD700"},move:{enable:true}}});
 </script>
 
 </body>
