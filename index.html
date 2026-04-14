@@ -10,105 +10,65 @@
   <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
 
   <style>
-    .money {
-      position: absolute;
-      top: -50px;
-      animation: fall linear infinite;
-      opacity: 0.9;
+    .money { position:absolute; top:-50px; animation:fall linear infinite; }
+    @keyframes fall { to { transform: translateY(110vh) rotate(360deg);} }
+
+    .money-pop, .loss-pop {
+      position:absolute; font-size:20px; pointer-events:none;
+      animation:pop 1s forwards;
     }
 
-    @keyframes fall {
-      0% { transform: translateY(0) rotate(0deg); }
-      100% { transform: translateY(110vh) rotate(360deg); }
-    }
-
-    .money-pop {
-      position: absolute;
-      font-size: 20px;
-      pointer-events: none;
-      animation: popMove 1s ease-out forwards;
-    }
-
-    @keyframes popMove {
-      0% { transform: translate(0,0) scale(0.5); opacity: 1; }
-      100% { transform: translate(var(--x), var(--y)) scale(1.3); opacity: 0; }
+    @keyframes pop {
+      0% {opacity:1; transform:scale(0.5);}
+      100% {opacity:0; transform:translate(var(--x),var(--y)) scale(1.3);}
     }
   </style>
 </head>
 
-<body class="bg-black text-white min-h-screen overflow-x-hidden 
-[box-shadow:inset_0_0_100px_rgba(255,215,0,0.1)]">
+<body class="bg-black text-white min-h-screen overflow-x-hidden">
 
-<div id="tsparticles" class="fixed top-0 left-0 w-full h-full -z-10"></div>
-<div id="money-rain" class="fixed top-0 left-0 w-full h-full pointer-events-none z-0"></div>
+<div id="tsparticles" class="fixed w-full h-full -z-10"></div>
+<div id="money-rain" class="fixed w-full h-full pointer-events-none"></div>
 
-<div class="max-w-6xl mx-auto p-4 md:p-6">
+<div class="max-w-6xl mx-auto p-4">
 
-  <div class="text-center mb-6">
-    <h1 class="text-3xl md:text-5xl font-extrabold 
-    bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-700 
-    bg-clip-text text-transparent 
-    drop-shadow-[0_0_20px_rgba(255,215,0,0.8)]">
-      ☁️ SKY JOURNAL TRADE
-    </h1>
-    <p class="text-yellow-400 text-sm">Elite Trader Dashboard</p>
-  </div>
+<h1 class="text-3xl text-center font-bold text-yellow-400 mb-4">
+☁️ SKY JOURNAL TRADE
+</h1>
 
-  <audio id="clickSound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
-  <audio id="cashSound" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"></audio>
+<audio id="clickSound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+<audio id="cashSound" src="https://assets.mixkit.co/active_storage/sfx/2013/2013-preview.mp3"></audio>
+<audio id="lossSound" src="https://assets.mixkit.co/active_storage/sfx/2221/2221-preview.mp3"></audio>
 
-  <!-- FORM -->
-  <div class="bg-white/5 backdrop-blur-lg p-4 rounded-xl mb-6 border border-yellow-500/20">
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
-      <input id="pair" placeholder="Pair" class="p-2 bg-black/50 rounded border border-yellow-500/20">
-      <input id="entry" placeholder="Entry" class="p-2 bg-black/50 rounded border border-yellow-500/20">
-      <input id="exit" placeholder="Exit" class="p-2 bg-black/50 rounded border border-yellow-500/20">
-      <input id="lot" placeholder="Lot" class="p-2 bg-black/50 rounded border border-yellow-500/20">
+<!-- FORM -->
+<div class="grid grid-cols-2 md:grid-cols-3 gap-2 mb-4">
+<input id="pair" placeholder="Pair" class="p-2 bg-gray-800 rounded">
+<input id="entry" placeholder="Entry" class="p-2 bg-gray-800 rounded">
+<input id="exit" placeholder="Exit" class="p-2 bg-gray-800 rounded">
+<input id="lot" placeholder="Lot" class="p-2 bg-gray-800 rounded">
+<select id="type" class="p-2 bg-gray-800 rounded">
+<option>Buy</option><option>Sell</option>
+</select>
+<input id="date" type="date" class="p-2 bg-gray-800 rounded">
+</div>
 
-      <select id="type" class="p-2 bg-black/50 rounded border border-yellow-500/20">
-        <option>Buy</option>
-        <option>Sell</option>
-      </select>
+<button onclick="addTrade()" class="w-full bg-yellow-500 text-black p-2 rounded mb-4">
+Tambah Trade
+</button>
 
-      <input id="date" type="date" class="p-2 bg-black/50 rounded border border-yellow-500/20">
-    </div>
+<!-- STATS -->
+<div class="grid grid-cols-4 text-center mb-4">
+<div>Profit<br><b id="profit">0</b></div>
+<div>Loss<br><b id="loss">0</b></div>
+<div>Trade<br><b id="count">0</b></div>
+<div>Win<br><b id="win">0%</b></div>
+</div>
 
-    <button onclick="addTrade()" class="mt-4 w-full bg-gradient-to-r from-yellow-400 to-yellow-600 text-black py-2 rounded font-semibold">
-      Tambah Trade
-    </button>
-  </div>
+<canvas id="chart"></canvas>
 
-  <!-- STATS -->
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 text-center">
-    <div class="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black p-3 rounded">Profit<br><b id="profit">0</b></div>
-    <div class="bg-gradient-to-r from-yellow-500 to-yellow-700 text-black p-3 rounded">Loss<br><b id="loss">0</b></div>
-    <div class="bg-gradient-to-r from-yellow-300 to-yellow-500 text-black p-3 rounded">Trade<br><b id="count">0</b></div>
-    <div class="bg-gradient-to-r from-yellow-600 to-yellow-800 text-black p-3 rounded">Win<br><b id="win">0%</b></div>
-  </div>
-
-  <!-- CHART -->
-  <div class="bg-white/5 p-4 rounded-xl mb-6 border border-yellow-500/20">
-    <canvas id="chart"></canvas>
-  </div>
-
-  <!-- TABLE -->
-  <div class="bg-white/5 p-4 rounded-xl overflow-x-auto border border-yellow-500/20">
-    <table class="w-full text-sm text-center">
-      <thead class="text-yellow-400 border-b border-yellow-500/30">
-        <tr>
-          <th>Pair</th>
-          <th>Entry</th>
-          <th>Exit</th>
-          <th>Lot</th>
-          <th>Type</th>
-          <th>Date</th>
-          <th>Profit</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="table"></tbody>
-    </table>
-  </div>
+<table class="w-full text-sm mt-4 text-center">
+<tbody id="table"></tbody>
+</table>
 
 </div>
 
@@ -116,75 +76,72 @@
 let trades = JSON.parse(localStorage.getItem('trades'))||[];
 let chart;
 
-function sound(){document.getElementById('clickSound').play();}
-
-function formatDate(dateStr){
-  if(!dateStr) return '-';
-  let [y,m,d] = dateStr.split('-');
-  return `${d}/${m}/${y}`;
-}
+function sound(){clickSound.play();}
 
 function profitCalc(t){
-  let e=parseFloat(t.entry),x=parseFloat(t.exit),l=parseFloat(t.lot);
+  let e=+t.entry,x=+t.exit,l=+t.lot;
   return t.type==='Buy'?(x-e)*l:(e-x)*l;
 }
 
-function animateValue(id, end){
-  const el = document.getElementById(id);
-  let start = parseFloat(el.innerText) || 0;
-  let duration = 500;
-  let startTime = null;
-
-  function update(time){
-    if(!startTime) startTime = time;
-    let progress = Math.min((time - startTime)/duration,1);
-    let value = start + (end - start) * progress;
-
-    el.innerText = value.toFixed(2);
-
-    if(progress < 1){
-      requestAnimationFrame(update);
-    }
-  }
-
-  requestAnimationFrame(update);
-}
-
+// 💸 PROFIT EFFECT
 function moneyFromProfit(){
-  const el = document.getElementById("profit");
-  const rect = el.getBoundingClientRect();
-  const icons = ["💰","💵","🪙"];
-
-  for(let i=0;i<15;i++){
-    const m = document.createElement("div");
-    m.classList.add("money-pop");
-    m.innerText = icons[Math.floor(Math.random()*icons.length)];
-
-    m.style.left = rect.left + rect.width/2 + "px";
-    m.style.top = rect.top + "px";
-
+  let r = profit.getBoundingClientRect();
+  let icons=["💰","💵"];
+  for(let i=0;i<10;i++){
+    let m=document.createElement("div");
+    m.className="money-pop";
+    m.innerText=icons[Math.random()*2|0];
+    m.style.left=r.left+"px";
+    m.style.top=r.top+"px";
     m.style.setProperty("--x",(Math.random()*200-100)+"px");
     m.style.setProperty("--y",(Math.random()*-200)+"px");
-
     document.body.appendChild(m);
-
     setTimeout(()=>m.remove(),1000);
   }
-
-  document.getElementById("cashSound").play();
+  cashSound.play();
 }
 
+// 🔻 LOSS EFFECT
+function lossEffect(){
+  let r = loss.getBoundingClientRect();
+  let icons=["🔻","💀"];
+  for(let i=0;i<10;i++){
+    let m=document.createElement("div");
+    m.className="loss-pop";
+    m.innerText=icons[Math.random()*2|0];
+    m.style.left=r.left+"px";
+    m.style.top=r.top+"px";
+    m.style.setProperty("--x",(Math.random()*200-100)+"px");
+    m.style.setProperty("--y",(Math.random()*200)+"px");
+    document.body.appendChild(m);
+    setTimeout(()=>m.remove(),1000);
+  }
+  lossSound.play();
+}
+
+// ➕ ADD TRADE (FIXED)
 function addTrade(){
   sound();
-  let t={pair:pair.value,entry:entry.value,exit:exit.value,lot:lot.value,type:type.value,date:date.value};
-  trades.push(t);
-  localStorage.setItem('trades',JSON.stringify(trades));
-  render();
-}
 
-function del(i){
-  sound();
-  trades.splice(i,1);
+  let t={
+    pair:pair.value,
+    entry:entry.value,
+    exit:exit.value,
+    lot:lot.value,
+    type:type.value,
+    date:date.value
+  };
+
+  let pr = profitCalc(t);
+
+  // 🎯 TRIGGER SEKALI SAJA
+  if(pr>0){
+    moneyFromProfit();
+  } else if(pr<0){
+    lossEffect();
+  }
+
+  trades.push(t);
   localStorage.setItem('trades',JSON.stringify(trades));
   render();
 }
@@ -195,70 +152,52 @@ function render(){
 
   trades.forEach((t,i)=>{
     let pr=profitCalc(t);
-
-    if(pr>=0){
-      p+=pr;
-      w++;
-      moneyFromProfit();
-    } else {
-      l+=Math.abs(pr);
-    }
+    if(pr>=0){p+=pr;w++;}
+    else l+=Math.abs(pr);
 
     data.push(p-l);
 
     table.innerHTML+=`
-    <tr class="border-b border-yellow-500/20">
+    <tr>
       <td>${t.pair}</td>
-      <td>${t.entry}</td>
-      <td>${t.exit}</td>
-      <td>${t.lot}</td>
-      <td class="${t.type==='Buy'?'text-green-400':'text-red-400'}">${t.type}</td>
-      <td>${formatDate(t.date)}</td>
-      <td class="${pr>=0?'text-green-400':'text-red-400'} font-semibold">${pr.toFixed(2)}</td>
+      <td>${pr.toFixed(2)}</td>
       <td><button onclick="del(${i})">❌</button></td>
     </tr>`;
   });
 
-  animateValue("profit", p);
+  profit.innerText=p.toFixed(2);
   loss.innerText=l.toFixed(2);
   count.innerText=trades.length;
   win.innerText=trades.length?((w/trades.length)*100).toFixed(1)+'%':'0%';
 
   if(chart) chart.destroy();
-  chart=new Chart(document.getElementById('chart'),{
+  chart=new Chart(chart,{
     type:'line',
-    data:{labels:data.map((_,i)=>i+1),datasets:[{data:data}]},
-    options:{plugins:{legend:{display:false}}}
+    data:{labels:data.map((_,i)=>i),datasets:[{data:data}]}
   });
+}
+
+function del(i){
+  trades.splice(i,1);
+  localStorage.setItem('trades',JSON.stringify(trades));
+  render();
 }
 
 render();
 
-tsParticles.load("tsparticles",{
-  particles:{
-    number:{value:60},
-    color:{value:"#FFD700"},
-    links:{enable:true,color:"#FFD700"},
-    move:{enable:true,speed:1}
-  }
-});
+// 💸 MONEY RAIN
+setInterval(()=>{
+  let m=document.createElement("div");
+  m.className="money";
+  m.innerText="💵";
+  m.style.left=Math.random()*100+"vw";
+  m.style.animationDuration=(Math.random()*3+3)+"s";
+  document.getElementById("money-rain").appendChild(m);
+  setTimeout(()=>m.remove(),6000);
+},300);
 
-function createMoney(){
-  const money=document.createElement("div");
-  const icons=["💵","💰","🪙"];
-  money.classList.add("money");
-  money.innerText=icons[Math.floor(Math.random()*icons.length)];
-
-  money.style.left=Math.random()*100+"vw";
-  money.style.animationDuration=(Math.random()*3+3)+"s";
-  money.style.fontSize=(Math.random()*20+20)+"px";
-
-  document.getElementById("money-rain").appendChild(money);
-
-  setTimeout(()=>money.remove(),6000);
-}
-
-setInterval(createMoney,300);
+// particles
+tsParticles.load("tsparticles",{particles:{number:{value:50},color:{value:"#FFD700"},move:{enable:true}}});
 </script>
 
 </body>
