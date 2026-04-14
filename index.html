@@ -24,16 +24,19 @@ animation:pop 1s forwards;
 </style>
 </head>
 
-<body class="bg-black text-white min-h-screen overflow-x-hidden">
+<body class="bg-black text-white min-h-screen overflow-x-hidden
+[box-shadow:inset_0_0_120px_rgba(255,215,0,0.15)]">
 
 <div id="tsparticles" class="fixed w-full h-full -z-10"></div>
 <div id="money-rain" class="fixed w-full h-full pointer-events-none"></div>
 
 <div class="max-w-6xl mx-auto p-6">
 
-<h1 class="text-4xl font-bold text-center mb-6
-bg-gradient-to-r from-yellow-300 via-yellow-500 to-yellow-700
-bg-clip-text text-transparent">
+<!-- TITLE -->
+<h1 class="text-4xl md:text-5xl font-extrabold text-center mb-6
+bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-600
+bg-clip-text text-transparent
+drop-shadow-[0_0_25px_rgba(255,215,0,0.9)] animate-pulse">
 ☁️ SKY JOURNAL TRADE
 </h1>
 
@@ -42,38 +45,60 @@ bg-clip-text text-transparent">
 <audio id="lossSound" src="https://assets.mixkit.co/active_storage/sfx/2221/2221-preview.mp3"></audio>
 
 <!-- FORM -->
-<div class="bg-white/5 p-4 rounded mb-6 grid grid-cols-2 md:grid-cols-3 gap-3">
+<div class="bg-white/5 backdrop-blur-lg border border-yellow-500/20 p-4 rounded-xl mb-6 grid grid-cols-2 md:grid-cols-3 gap-3">
 <input id="pair" placeholder="Pair" class="p-2 bg-black/50 rounded">
 <input id="entry" placeholder="Entry" class="p-2 bg-black/50 rounded">
 <input id="exit" placeholder="Exit" class="p-2 bg-black/50 rounded">
 <input id="lot" placeholder="Lot" class="p-2 bg-black/50 rounded">
+
 <select id="type" class="p-2 bg-black/50 rounded">
 <option>Buy</option><option>Sell</option>
 </select>
+
 <input id="date" type="date" class="p-2 bg-black/50 rounded">
-<button onclick="addTrade()" class="col-span-2 md:col-span-3 bg-yellow-500 text-black p-2 rounded">
+
+<button onclick="addTrade()" class="col-span-2 md:col-span-3 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black p-2 rounded font-semibold">
 Tambah Trade
 </button>
 </div>
 
 <!-- STATS -->
 <div class="grid grid-cols-2 md:grid-cols-4 text-center mb-6 gap-3">
-<div class="bg-yellow-500 text-black p-3 rounded">Profit<br><b id="profit">0</b></div>
-<div class="bg-red-500 p-3 rounded">Loss<br><b id="loss">0</b></div>
-<div class="bg-blue-500 p-3 rounded">Trade<br><b id="count">0</b></div>
-<div class="bg-purple-500 p-3 rounded">Win<br><b id="win">0%</b></div>
+
+<div class="bg-gradient-to-r from-green-500 to-emerald-600 p-3 rounded-xl shadow-lg">
+Profit<br><b id="profit">0</b>
 </div>
 
-<canvas id="chart" class="mb-6"></canvas>
+<div class="bg-gradient-to-r from-red-500 to-rose-600 p-3 rounded-xl shadow-lg">
+Loss<br><b id="loss">0</b>
+</div>
 
-<table class="w-full text-center text-sm">
-<thead>
+<div class="bg-gradient-to-r from-blue-500 to-cyan-600 p-3 rounded-xl shadow-lg">
+Trade<br><b id="count">0</b>
+</div>
+
+<div class="bg-gradient-to-r from-purple-500 to-pink-600 p-3 rounded-xl shadow-lg">
+Win<br><b id="win">0%</b>
+</div>
+
+</div>
+
+<!-- CHART -->
+<div class="bg-white/5 backdrop-blur-lg border border-yellow-500/20 p-4 rounded-xl mb-6">
+<canvas id="chart"></canvas>
+</div>
+
+<!-- TABLE -->
+<div class="bg-white/5 backdrop-blur-lg border border-yellow-500/20 p-4 rounded-xl overflow-x-auto">
+<table class="w-full text-sm text-center">
+<thead class="text-yellow-400 border-b border-yellow-500/30">
 <tr>
 <th>Pair</th><th>Entry</th><th>Exit</th><th>Lot</th><th>Type</th><th>Date</th><th>Profit</th><th></th>
 </tr>
 </thead>
 <tbody id="table"></tbody>
 </table>
+</div>
 
 </div>
 
@@ -94,6 +119,7 @@ let e=+t.entry,x=+t.exit,l=+t.lot;
 return t.type==='Buy'?(x-e)*l:(e-x)*l;
 }
 
+// 💸 PROFIT EFFECT
 function moneyFromProfit(){
 let r=profit.getBoundingClientRect();
 let icons=["💰","💵","🪙"];
@@ -111,6 +137,7 @@ setTimeout(()=>m.remove(),1000);
 cashSound.play();
 }
 
+// 🔻 LOSS EFFECT
 function lossEffect(){
 let r=loss.getBoundingClientRect();
 let icons=["🔻","💀","📉"];
@@ -167,14 +194,14 @@ else l+=Math.abs(pr);
 data.push(p-l);
 
 table.innerHTML+=`
-<tr>
+<tr class="border-b border-yellow-500/20">
 <td>${t.pair}</td>
 <td>${t.entry}</td>
 <td>${t.exit}</td>
 <td>${t.lot}</td>
-<td>${t.type}</td>
+<td class="${t.type==='Buy'?'text-green-400':'text-red-400'}">${t.type}</td>
 <td>${formatDate(t.date)}</td>
-<td class="${pr>=0?'text-green-400':'text-red-400'}">${pr.toFixed(2)}</td>
+<td class="${pr>=0?'text-green-400':'text-red-400'} font-semibold">${pr.toFixed(2)}</td>
 <td><button onclick="del(${i})">❌</button></td>
 </tr>`;
 });
@@ -205,7 +232,7 @@ document.getElementById("money-rain").appendChild(m);
 setTimeout(()=>m.remove(),6000);
 },300);
 
-// ✨ GOLD PARTICLE FIX
+// ✨ GOLD PARTICLES (FIX)
 tsParticles.load("tsparticles",{
 particles:{
 number:{value:80},
