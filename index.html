@@ -33,12 +33,14 @@ animation:pop 1s forwards;
 <div id="tsparticles" class="fixed w-full h-full -z-10"></div>
 <div id="money-rain" class="fixed w-full h-full pointer-events-none"></div>
 
-<div class="max-w-6xl mx-auto p-6">
+<div class="max-w-6xl mx-auto p-4 md:p-6">
 
-<h1 class="text-4xl md:text-5xl font-extrabold text-center mb-6
+<!-- 🔥 TITLE FIX MOBILE -->
+<h1 class="text-2xl md:text-5xl font-extrabold text-center mb-6
 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-600
 bg-clip-text text-transparent
-drop-shadow-[0_0_25px_rgba(255,215,0,0.9)] animate-pulse">
+drop-shadow-[0_0_25px_rgba(255,215,0,0.9)]
+whitespace-nowrap overflow-hidden text-ellipsis">
 ☁️ SKY JOURNAL TRADE
 </h1>
 
@@ -85,14 +87,14 @@ Win<br><b id="win">0%</b>
 
 </div>
 
-<!-- CHART FIX HEIGHT -->
+<!-- CHART -->
 <div class="bg-white/5 backdrop-blur-lg border border-yellow-500/20 p-4 rounded-xl mb-6 h-64">
 <canvas id="chart"></canvas>
 </div>
 
-<!-- TABLE -->
+<!-- 🔥 TABLE FIX MOBILE -->
 <div class="bg-white/5 backdrop-blur-lg border border-yellow-500/20 p-4 rounded-xl overflow-x-auto">
-<table class="w-full text-sm text-center">
+<table class="w-full text-xs md:text-sm text-center">
 <thead class="text-yellow-400 border-b border-yellow-500/30">
 <tr>
 <th>Pair</th><th>Entry</th><th>Exit</th><th>Lot</th><th>Type</th><th>Date</th><th>Profit</th><th></th>
@@ -192,7 +194,7 @@ table.innerHTML+=`
 <td>${t.exit}</td>
 <td>${t.lot}</td>
 <td>${t.type}</td>
-<td>${formatDate(t.date)}</td>
+<td class="whitespace-nowrap text-xs md:text-sm">${formatDate(t.date)}</td>
 <td class="${pr>=0?'text-green-400':'text-red-400'}">${pr.toFixed(2)}</td>
 <td><button onclick="del(${i})">❌</button></td>
 </tr>`;
@@ -203,40 +205,27 @@ loss.innerText=l.toFixed(2);
 count.innerText=trades.length;
 win.innerText=trades.length?((w/trades.length)*100).toFixed(1)+'%':'0%';
 
-// 🔥 CANDLE FIX RAMPING
+// candle chart
 let candleData = trades.map((t,i)=>{
 let e=+t.entry,x=+t.exit;
-return {
-x:i,
-o:e,
-h:Math.max(e,x)+1,
-l:Math.min(e,x)-1,
-c:x
-};
+return {x:i,o:e,h:Math.max(e,x)+1,l:Math.min(e,x)-1,c:x};
 });
 
 if(chart) chart.destroy();
 chart=new Chart(document.getElementById("chart"),{
 type:'candlestick',
-data:{
-datasets:[{
+data:{datasets:[{
 data:candleData,
-color:{
-up:'#00ff88',
-down:'#ff3b3b',
-unchanged:'#999'
-},
-barThickness:8,
-maxBarThickness:10
-}]
-},
+color:{up:'#00ff88',down:'#ff3b3b',unchanged:'#999'},
+barThickness:8,maxBarThickness:10
+}]},
 options:{
 responsive:true,
 maintainAspectRatio:false,
 plugins:{legend:{display:false}},
 scales:{
-x:{ticks:{color:'#FFD700'},grid:{color:'rgba(255,215,0,0.1)'}},
-y:{ticks:{color:'#FFD700'},grid:{color:'rgba(255,215,0,0.1)'}}
+x:{ticks:{color:'#FFD700'}},
+y:{ticks:{color:'#FFD700'}}
 }
 }
 });
@@ -255,7 +244,7 @@ document.getElementById("money-rain").appendChild(m);
 setTimeout(()=>m.remove(),6000);
 },300);
 
-// GOLD particles
+// particles
 tsParticles.load("tsparticles",{
 particles:{
 number:{value:80},
