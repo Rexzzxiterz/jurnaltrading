@@ -3,155 +3,117 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trading Journal Pro</title>
+  <title>SKY JOURNAL TRADE</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
 </head>
-<body class="bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white min-h-screen">
+<body class="bg-black text-white min-h-screen overflow-x-hidden">
 
-<div class="max-w-6xl mx-auto p-6">
-  <h1 class="text-4xl font-bold text-center mb-8 tracking-wide">🚀 Trading Journal Pro</h1>
+<!-- PARTICLE BACKGROUND -->
+<div id="tsparticles" class="fixed top-0 left-0 w-full h-full -z-10"></div>
 
-  <!-- FORM -->
-  <div class="bg-white/5 backdrop-blur-lg border border-white/10 p-6 rounded-2xl shadow-xl mb-8">
-    <h2 class="text-xl mb-4 font-semibold">Tambah Trade</h2>
-    <div class="grid md:grid-cols-3 gap-4">
-      <input id="pair" placeholder="Pair (BTC/USDT)" class="p-3 rounded-lg bg-black/50 border border-gray-700">
-      <input id="entry" type="text" inputmode="decimal" placeholder="Entry" class="p-3 rounded-lg bg-black/50 border border-gray-700">
-      <input id="exit" type="text" inputmode="decimal" placeholder="Exit" class="p-3 rounded-lg bg-black/50 border border-gray-700">
-      <input id="lot" type="text" inputmode="decimal" placeholder="Lot/Size" class="p-3 rounded-lg bg-black/50 border border-gray-700">
-      <select id="type" class="p-3 rounded-lg bg-black/50 border border-gray-700">
-        <option value="Buy">🟢 Buy</option>
-        <option value="Sell">🔴 Sell</option>
+<div class="max-w-6xl mx-auto p-4 md:p-6">
+  <div class="text-center mb-6">
+    <h1 class="text-3xl md:text-5xl font-extrabold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent animate-pulse">
+      ☁️ SKY JOURNAL TRADE
+    </h1>
+    <p class="text-gray-400 text-sm">Track. Improve. Dominate.</p>
+  </div>
+
+  <audio id="clickSound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+
+  <div class="bg-white/5 backdrop-blur-lg p-4 rounded-xl mb-6">
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+      <input id="pair" placeholder="Pair" class="p-2 bg-black/50 rounded">
+      <input id="entry" type="text" placeholder="Entry" class="p-2 bg-black/50 rounded">
+      <input id="exit" type="text" placeholder="Exit" class="p-2 bg-black/50 rounded">
+      <input id="lot" type="text" placeholder="Lot" class="p-2 bg-black/50 rounded">
+      <select id="type" class="p-2 bg-black/50 rounded">
+        <option>Buy</option>
+        <option>Sell</option>
       </select>
-      <input id="date" type="date" class="p-3 rounded-lg bg-black/50 border border-gray-700">
+      <input id="date" type="date" class="p-2 bg-black/50 rounded">
     </div>
-
-    <button onclick="addTrade()" class="mt-6 w-full bg-gradient-to-r from-blue-500 to-indigo-600 py-3 rounded-xl">+ Tambah Trade</button>
+    <button onclick="addTrade()" class="mt-4 w-full bg-blue-600 py-2 rounded active:scale-95">Tambah</button>
   </div>
 
-  <!-- STATS -->
-  <div class="grid md:grid-cols-4 gap-6 mb-8">
-    <div class="bg-gradient-to-r from-green-500 to-emerald-600 p-5 rounded-2xl">
-      <h3>Total Profit</h3>
-      <p id="totalProfit" class="text-2xl font-bold">0</p>
-    </div>
-    <div class="bg-gradient-to-r from-red-500 to-pink-600 p-5 rounded-2xl">
-      <h3>Total Loss</h3>
-      <p id="totalLoss" class="text-2xl font-bold">0</p>
-    </div>
-    <div class="bg-gradient-to-r from-blue-500 to-cyan-600 p-5 rounded-2xl">
-      <h3>Total Trade</h3>
-      <p id="totalTrade" class="text-2xl font-bold">0</p>
-    </div>
-    <div class="bg-gradient-to-r from-purple-500 to-indigo-600 p-5 rounded-2xl">
-      <h3>Win Rate</h3>
-      <p id="winRate" class="text-2xl font-bold">0%</p>
-    </div>
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 text-center">
+    <div class="bg-green-600 p-3 rounded">Profit<br><b id="profit">0</b></div>
+    <div class="bg-red-600 p-3 rounded">Loss<br><b id="loss">0</b></div>
+    <div class="bg-blue-600 p-3 rounded">Trade<br><b id="count">0</b></div>
+    <div class="bg-purple-600 p-3 rounded">Win<br><b id="win">0%</b></div>
   </div>
 
-  <!-- TABLE -->
-  <div class="bg-white/5 backdrop-blur-lg border border-white/10 p-6 rounded-2xl">
+  <div class="bg-white/5 p-4 rounded-xl mb-6">
+    <canvas id="chart"></canvas>
+  </div>
+
+  <div class="bg-white/5 p-4 rounded-xl overflow-x-auto">
     <table class="w-full text-sm">
-      <thead>
-        <tr class="text-gray-400 border-b border-gray-700">
-          <th>Pair</th>
-          <th>Type</th>
-          <th>Entry</th>
-          <th>Exit</th>
-          <th>Profit</th>
-          <th>Date</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
+      <tbody id="table"></tbody>
     </table>
   </div>
 </div>
 
 <script>
-let trades = JSON.parse(localStorage.getItem('trades')) || [];
+let trades = JSON.parse(localStorage.getItem('trades'))||[];
+let chart;
 
-function saveData() {
-  localStorage.setItem('trades', JSON.stringify(trades));
+function sound(){document.getElementById('clickSound').play();}
+
+function profitCalc(t){
+  let e=parseFloat(t.entry),x=parseFloat(t.exit),l=parseFloat(t.lot);
+  return t.type==='Buy'?(x-e)*l:(e-x)*l;
 }
 
-function calculateProfit(t) {
-  return t.type === 'Buy'
-    ? (t.exit - t.entry) * t.lot
-    : (t.entry - t.exit) * t.lot;
-}
-
-function addTrade() {
-  const trade = {
-    pair: pair.value,
-    entry: parseFloat(entry.value),
-    exit: parseFloat(exit.value),
-    lot: parseFloat(lot.value),
-    type: type.value,
-    date: date.value
-  };
-
-  if (!trade.pair || !trade.entry || !trade.exit || !trade.lot) {
-    alert('Isi semua field!');
-    return;
-  }
-
-  trades.push(trade);
-  saveData();
+function addTrade(){
+  sound();
+  let t={pair:pair.value,entry:entry.value,exit:exit.value,lot:lot.value,type:type.value,date:date.value};
+  trades.push(t);
+  localStorage.setItem('trades',JSON.stringify(trades));
   render();
 }
 
-function deleteTrade(index) {
-  trades.splice(index, 1);
-  saveData();
-  render();
-}
+function del(i){sound();trades.splice(i,1);localStorage.setItem('trades',JSON.stringify(trades));render();}
 
-function render() {
-  const table = document.getElementById('tableBody');
-  table.innerHTML = '';
+function render(){
+  let p=0,l=0,w=0,data=[];
+  table.innerHTML='';
 
-  let totalProfit = 0;
-  let totalLoss = 0;
-  let win = 0;
+  trades.forEach((t,i)=>{
+    let pr=profitCalc(t);
+    if(pr>=0){p+=pr;w++;}else l+=Math.abs(pr);
+    data.push(p-l);
 
-  trades.forEach((t, i) => {
-    const profit = calculateProfit(t);
-
-    if (profit >= 0) {
-      totalProfit += profit;
-      win++;
-    } else {
-      totalLoss += Math.abs(profit);
-    }
-
-    table.innerHTML += `
-      <tr class="border-b border-gray-800 hover:bg-white/5">
-        <td>${t.pair}</td>
-        <td>${t.type}</td>
-        <td>${t.entry}</td>
-        <td>${t.exit}</td>
-        <td class="${profit >= 0 ? 'text-green-400' : 'text-red-400'}">${profit.toFixed(2)}</td>
-        <td>${t.date}</td>
-        <td><button onclick="deleteTrade(${i})" class="text-red-400">✖</button></td>
-      </tr>
-    `;
+    table.innerHTML+=`<tr class="border-b border-gray-700">
+      <td>${t.pair}</td>
+      <td class="${pr>=0?'text-green-400':'text-red-400'}">${pr.toFixed(2)}</td>
+      <td><button onclick="del(${i})">❌</button></td>
+    </tr>`;
   });
 
-  totalProfitEl.innerText = totalProfit.toFixed(2);
-  totalLossEl.innerText = totalLoss.toFixed(2);
-  totalTrade.innerText = trades.length;
-  winRate.innerText = trades.length
-    ? ((win / trades.length) * 100).toFixed(1) + '%'
-    : '0%';
+  profit.innerText=p.toFixed(2);
+  loss.innerText=l.toFixed(2);
+  count.innerText=trades.length;
+  win.innerText=trades.length?((w/trades.length)*100).toFixed(1)+'%':'0%';
+
+  if(chart) chart.destroy();
+  chart=new Chart(chartCanvas(),{
+    type:'line',
+    data:{labels:data.map((_,i)=>i+1),datasets:[{data:data}]},
+    options:{responsive:true}
+  });
 }
 
-const totalProfitEl = document.getElementById('totalProfit');
-const totalLossEl = document.getElementById('totalLoss');
-const totalTrade = document.getElementById('totalTrade');
-const winRate = document.getElementById('winRate');
+function chartCanvas(){return document.getElementById('chart');}
 
 render();
+
+tsParticles.load("tsparticles",{
+  particles:{number:{value:60},color:{value:"#00ffff"},links:{enable:true,color:"#00ffff"},move:{enable:true,speed:1}},
+  background:{color:"#000"}
+});
 </script>
 
 </body>
