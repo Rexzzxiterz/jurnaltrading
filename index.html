@@ -7,12 +7,9 @@
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<!-- 🔥 CANDLE PLUGIN -->
 <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial"></script>
 <script src="https://cdn.jsdelivr.net/npm/luxon"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/tsparticles@2/tsparticles.bundle.min.js"></script>
 
 <style>
@@ -88,8 +85,8 @@ Win<br><b id="win">0%</b>
 
 </div>
 
-<!-- CHART -->
-<div class="bg-white/5 backdrop-blur-lg border border-yellow-500/20 p-4 rounded-xl mb-6">
+<!-- CHART FIX HEIGHT -->
+<div class="bg-white/5 backdrop-blur-lg border border-yellow-500/20 p-4 rounded-xl mb-6 h-64">
 <canvas id="chart"></canvas>
 </div>
 
@@ -206,14 +203,14 @@ loss.innerText=l.toFixed(2);
 count.innerText=trades.length;
 win.innerText=trades.length?((w/trades.length)*100).toFixed(1)+'%':'0%';
 
-// 🔥 CANDLE CHART
+// 🔥 CANDLE FIX RAMPING
 let candleData = trades.map((t,i)=>{
 let e=+t.entry,x=+t.exit;
 return {
 x:i,
 o:e,
-h:Math.max(e,x)+Math.random()*5,
-l:Math.min(e,x)-Math.random()*5,
+h:Math.max(e,x)+1,
+l:Math.min(e,x)-1,
 c:x
 };
 });
@@ -228,14 +225,18 @@ color:{
 up:'#00ff88',
 down:'#ff3b3b',
 unchanged:'#999'
-}
+},
+barThickness:8,
+maxBarThickness:10
 }]
 },
 options:{
+responsive:true,
+maintainAspectRatio:false,
 plugins:{legend:{display:false}},
 scales:{
-x:{ticks:{color:'#FFD700'}},
-y:{ticks:{color:'#FFD700'}}
+x:{ticks:{color:'#FFD700'},grid:{color:'rgba(255,215,0,0.1)'}},
+y:{ticks:{color:'#FFD700'},grid:{color:'rgba(255,215,0,0.1)'}}
 }
 }
 });
